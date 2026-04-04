@@ -10,8 +10,6 @@ This project was built to simulate a real-world use case: monitoring industrial 
 
 This dashboard replaces a manual clipboard process with a proper web interface where operators can log readings, spot trends over time, and filter by sensor.
 
-The project was intentionally designed to mirror the core product idea at Spesnes — a startup building comprehensive analysis and maintenance solutions for industrial fluids.
-
 ---
 
 ## Features
