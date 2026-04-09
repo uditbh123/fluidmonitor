@@ -1,20 +1,19 @@
-# 🧪 Fluid Monitor Dashboard
+#  Fluid Monitor Dashboard
 
 A full-stack web application for logging, tracking, and visualizing industrial fluid sensor readings — built with Django, Bootstrap 5, and Chart.js.
 
 ---
 
-## 💡 Why I Built This
+##  Why I Built This
 
 This project was built to simulate a real-world use case: monitoring industrial fluids like coolants and lubricants used in manufacturing machines. These fluids need to be constantly checked — if pH levels drift or temperatures spike, machines get damaged.
 
 This dashboard replaces a manual clipboard process with a proper web interface where operators can log readings, spot trends over time, and filter by sensor.
 
-The project was intentionally designed to mirror the core product idea at Spesnes — a startup building comprehensive analysis and maintenance solutions for industrial fluids.
 
 ---
 
-## 🚀 Features
+##  Features
 
 - **Log sensor readings** — record pH, temperature, concentration, and percentage values from any sensor
 - **Live dashboard** — view all readings in a clean, responsive Bootstrap 5 table
@@ -27,7 +26,7 @@ The project was intentionally designed to mirror the core product idea at Spesne
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
@@ -40,7 +39,7 @@ The project was intentionally designed to mirror the core product idea at Spesne
 
 ---
 
-## 🏗️ How It Works
+##  How It Works
 
 The project follows Django's **MTV architecture** (Model, Template, View):
 
@@ -87,7 +86,7 @@ This is a simplified version of how real data pipelines work — the backend ser
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 fluidmonitor/
@@ -115,7 +114,7 @@ fluidmonitor/
 
 ---
 
-## 🗄️ Database Model
+##  Database Model
 
 The core data model is a `Reading` object stored in the `readings_reading` table:
 
@@ -138,7 +137,7 @@ This two-step approach allows migration files to be shared across teams so every
 
 ---
 
-## ⚙️ Setup & Installation
+##  Setup & Installation
 
 ```bash
 # Clone the repository
@@ -164,7 +163,7 @@ Admin panel available at **http://127.0.0.1:8000/admin**
 
 ---
 
-## 📸 Pages
+##  Pages
 
 | Page | URL | Description |
 |------|-----|-------------|
@@ -175,7 +174,7 @@ Admin panel available at **http://127.0.0.1:8000/admin**
 
 ---
 
-## 🧠 Key Concepts Learned
+##  Key Concepts Learned
 
 **Day 1 — Django foundations**
 - MTV architecture — how Models, Templates, and Views work together
@@ -208,7 +207,7 @@ Admin panel available at **http://127.0.0.1:8000/admin**
 
 ---
 
-## 🗓️ Build Progress
+##  Build Progress
 
 - [x] Day 1 — Django setup, URL routing, first template
 - [x] Day 2 — Database model, migrations, Django Admin
@@ -219,9 +218,9 @@ Admin panel available at **http://127.0.0.1:8000/admin**
 
 ---
 
-## 👨‍💻 Author
+##  Author
 
-**Udit Bhandari**
+**Udit Bhattarai**
 - GitHub: [@uditbh123](https://github.com/uditbh123)
 
 ---
