@@ -7,15 +7,28 @@ from django.http import JsonResponse
 def home(request):
     readings = Reading.objects.all().order_by('-recorded_at')
 
-    stats = Reading.objects.aggregate(
-        avg_value=Avg('value'),
-        min_value=Min('value'),
-        max_value=Max('value'),
-    )
+    # Calculate stats separately for each unit type
+    units = Reading.objects.values_list('unit', flat=True).distinct()
+    
+    stats_by_unit = []
+    for unit in units:
+        unit_readings = Reading.objects.filter(unit=unit)
+        unit_stats = unit_readings.aggregate(
+            avg_value=Avg('value'),
+            min_value=Min('value'),
+            max_value=Max('value'),
+        )
+        stats_by_unit.append({
+            'unit': unit,
+            'avg': unit_stats['avg_value'],
+            'min': unit_stats['min_value'],
+            'max': unit_stats['max_value'],
+            'count': unit_readings.count(),
+        })
 
     context = {
         'readings': readings,
-        'stats': stats,
+        'stats_by_unit': stats_by_unit,
     }
     return render(request, 'readings/home.html', context)
 

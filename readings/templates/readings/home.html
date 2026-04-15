@@ -18,37 +18,41 @@
 
     <div class="container mt-4">
 
-        <!-- STATS CARDS -->
-        <div class="row mb-4">
-
-            <div class="col-md-4">
-                <div class="card text-white bg-primary h-100">
-                    <div class="card-body">
-                        <h6 class="card-title">Average Value</h6>
-                        <h2 class="mb-0">{{ stats.avg_value|floatformat:2 }}</h2>
-                    </div>
-                </div>
+<!-- STATS BY UNIT -->
+<div class="row mb-4">
+    {% for stat in stats_by_unit %}
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h6 class="mb-0">
+                    {% if stat.unit == 'pH' %}
+                    {% elif stat.unit == 'C' %}
+                    {% elif stat.unit == 'mg/L' %}
+                    {% else %}
+                    {% endif %}
+                    {{ stat.unit }} — {{ stat.count }} reading{{ stat.count|pluralize }}
+                </h6>
             </div>
-
-            <div class="col-md-4">
-                <div class="card text-white bg-success h-100">
-                    <div class="card-body">
-                        <h6 class="card-title">Minimum Value</h6>
-                        <h2 class="mb-0">{{ stats.min_value|floatformat:2 }}</h2>
-                    </div>
-                </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <tr>
+                        <td class="text-muted ps-3">Average</td>
+                        <td class="fw-bold text-primary">{{ stat.avg|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted ps-3">Minimum</td>
+                        <td class="fw-bold text-success">{{ stat.min|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted ps-3">Maximum</td>
+                        <td class="fw-bold text-danger">{{ stat.max|floatformat:2 }}</td>
+                    </tr>
+                </table>
             </div>
-
-            <div class="col-md-4">
-                <div class="card text-white bg-danger h-100">
-                    <div class="card-body">
-                        <h6 class="card-title">Maximum Value</h6>
-                        <h2 class="mb-0">{{ stats.max_value|floatformat:2 }}</h2>
-                    </div>
-                </div>
-            </div>
-
         </div>
+    </div>
+    {% endfor %}
+</div>
 
         <!-- READINGS TABLE -->
         <div class="card">
