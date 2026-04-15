@@ -34,7 +34,7 @@
                 <div class="card text-white bg-success h-100">
                     <div class="card-body">
                         <h6 class="card-title">Minimum Value</h6>
-                        <h2 class="mb-0">{{ stats.min_value }}</h2>
+                        <h2 class="mb-0">{{ stats.min_value|floatformat:2 }}</h2>
                     </div>
                 </div>
             </div>
@@ -43,7 +43,7 @@
                 <div class="card text-white bg-danger h-100">
                     <div class="card-body">
                         <h6 class="card-title">Maximum Value</h6>
-                        <h2 class="mb-0">{{ stats.max_value }}</h2>
+                        <h2 class="mb-0">{{ stats.max_value|floatformat:2 }}</h2>
                     </div>
                 </div>
             </div>
@@ -87,10 +87,81 @@
                 </table>
             </div>
         </div>
+        <!-- CHART SECTION -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">Readings Over Time</h5>
+    </div>
+    <div class="card-body">
+        <canvas id="readingsChart" height="80"></canvas>
+    </div>
+</div>
 
     </div>
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Step 1: fetch data from our Django JSON endpoint
+    fetch('/chart-data/')
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            // Step 2: find the canvas element on the page
+            const ctx = document.getElementById('readingsChart').getContext('2d');
+
+            // Step 3: create the chart
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Sensor Readings',
+                        data: data.values,
+                        borderColor: 'rgb(13, 110, 253)',
+                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    return 'Sensor: ' + data.sensors[context.dataIndex];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Value'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+</script>
 </body>
 </html>
