@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from .models import Reading
 from .forms import ReadingForm
 from django.db.models import Avg, Min, Max
+from django.http import JsonResponse
 
 def home(request):
     readings = Reading.objects.all().order_by('-recorded_at')
@@ -29,3 +30,13 @@ def add_reading(request):
         form = ReadingForm()
 
     return render(request, 'readings/add_reading.html', {'form': form})
+
+def chart_data(request):
+    readings = Reading.objects.all().order_by('recorded_at')
+
+    data = {
+        'labels': [r.recorded_at.strftime('%d %b %H:%M') for r in readings],
+        'values': [float(r.value) for r in readings],
+        'sensors': [r.sensor_name for r in readings],
+    }
+    return JsonResponse(data)
