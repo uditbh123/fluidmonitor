@@ -1,32 +1,31 @@
-#  Fluid Monitor Dashboard
+# Fluid Monitor Dashboard
 
 A full-stack web application for logging, tracking, and visualizing industrial fluid sensor readings — built with Django, Bootstrap 5, and Chart.js.
 
 ---
 
-##  Why I Built This
+## Why I Built This
 
 This project was built to simulate a real-world use case: monitoring industrial fluids like coolants and lubricants used in manufacturing machines. These fluids need to be constantly checked — if pH levels drift or temperatures spike, machines get damaged.
 
 This dashboard replaces a manual clipboard process with a proper web interface where operators can log readings, spot trends over time, and filter by sensor.
 
-
 ---
 
-##  Features
+## Features
 
 - **Log sensor readings** — record pH, temperature, concentration, and percentage values from any sensor
 - **Live dashboard** — view all readings in a clean, responsive Bootstrap 5 table
 - **Add readings from the frontend** — a form page lets any user log a new reading without needing admin access
+- **Per-unit statistics** — average, minimum, and maximum values calculated separately for each unit type (pH, temperature, concentration)
 - **Data visualization** — interactive line chart showing sensor values over time using Chart.js
 - **Filter by sensor** — narrow down readings to a specific sensor with a dropdown filter
-- **Statistics** — automatic calculation of average, minimum, and maximum values
 - **Django Admin** — full admin panel for managing data directly
 - **JSON API endpoint** — `/chart-data/` returns sensor data as JSON, consumed by the frontend chart
 
 ---
 
-##  Tech Stack
+## Tech Stack
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
@@ -39,9 +38,9 @@ This dashboard replaces a manual clipboard process with a proper web interface w
 
 ---
 
-##  How It Works
+## How It Works
 
-The project follows Django's **MTV architecture** (Model, Template, View):
+The project follows Django's MTV architecture (Model, Template, View):
 
 ```
 Browser Request
@@ -69,6 +68,9 @@ class Reading(models.Model):
     notes       = models.TextField(blank=True)            # Optional notes
 ```
 
+### The Statistics Layer
+Stats are calculated separately per unit type so that pH averages are never mixed with temperature or concentration values. Django's ORM aggregation functions (Avg, Min, Max) run the calculations directly in the database rather than in Python, which is more efficient.
+
 ### The Form Layer
 New readings are submitted through a Django ModelForm. Django handles:
 - Rendering the form fields as HTML automatically
@@ -76,17 +78,17 @@ New readings are submitted through a Django ModelForm. Django handles:
 - CSRF protection — a hidden security token that prevents malicious form submissions
 - Saving valid data to the database and redirecting back to the dashboard
 
-### The Mini API
+### The JSON API
 The chart is powered by a JSON endpoint built in Django:
 - `/chart-data/` returns sensor readings as JSON
-- JavaScript uses `fetch()` to call this endpoint
+- JavaScript uses `fetch()` to call this endpoint in the background
 - Chart.js renders the data as an interactive line graph
 
-This is a simplified version of how real data pipelines work — the backend serves data, the frontend consumes it.
+This is how real dashboards work in production — the backend serves data, the frontend consumes it separately from the page load.
 
 ---
 
-##  Project Structure
+## Project Structure
 
 ```
 fluidmonitor/
@@ -99,7 +101,7 @@ fluidmonitor/
 │   │   └── 0001_initial.py      # First migration — creates readings table
 │   ├── templates/
 │   │   └── readings/
-│   │       ├── home.html        # Dashboard page with stats and table
+│   │       ├── home.html        # Dashboard page with stats, table, and chart
 │   │       └── add_reading.html # Add new reading form page
 │   ├── models.py                # Reading data model (database table)
 │   ├── views.py                 # Business logic and page rendering
@@ -114,7 +116,7 @@ fluidmonitor/
 
 ---
 
-##  Database Model
+## Database Model
 
 The core data model is a `Reading` object stored in the `readings_reading` table:
 
@@ -137,7 +139,7 @@ This two-step approach allows migration files to be shared across teams so every
 
 ---
 
-##  Setup & Installation
+## Setup & Installation
 
 ```bash
 # Clone the repository
@@ -157,24 +159,24 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Then open **http://127.0.0.1:8000** in your browser.
+Then open http://127.0.0.1:8000 in your browser.
 
-Admin panel available at **http://127.0.0.1:8000/admin**
+Admin panel available at http://127.0.0.1:8000/admin
 
 ---
 
-##  Pages
+## Pages
 
 | Page | URL | Description |
 |------|-----|-------------|
-| Dashboard | `/` | All readings, stats cards, and chart |
+| Dashboard | `/` | All readings, per-unit stats cards, and chart |
 | Add Reading | `/add/` | Form to log a new sensor reading from the frontend |
 | Admin | `/admin/` | Django admin panel for superusers |
 | Chart Data | `/chart-data/` | JSON API endpoint for the chart |
 
 ---
 
-##  Key Concepts Learned
+## Key Concepts Learned
 
 **Day 1 — Django foundations**
 - MTV architecture — how Models, Templates, and Views work together
@@ -182,7 +184,7 @@ Admin panel available at **http://127.0.0.1:8000/admin**
 - Template rendering — how Django fills HTML with dynamic data
 - App registration — why every app must be in INSTALLED_APPS
 
-**Day 2 — Database & ORM**
+**Day 2 — Database and ORM**
 - Django ORM — querying and writing to a database using Python instead of raw SQL
 - Model fields — CharField, DecimalField, DateTimeField, TextField and when to use each
 - Migrations — the two-step process of makemigrations and migrate
@@ -194,7 +196,7 @@ Admin panel available at **http://127.0.0.1:8000/admin**
 - Bootstrap grid system — how col-md-4 creates responsive side-by-side layouts
 - Bootstrap components — cards, tables, navbars, buttons using only class names
 - Django template syntax — loops, filters, and passing context from views to templates
-- Django ORM aggregation — calculating avg, min, max across all database rows
+- Django ORM aggregation — calculating avg, min, max across database rows
 - QuerySet ordering — order_by('-recorded_at') to sort newest first
 
 **Day 4 — Django Forms**
@@ -205,20 +207,31 @@ Admin panel available at **http://127.0.0.1:8000/admin**
 - HttpResponse requirement — every Django view must return a response or Django raises an error
 - Python indentation — how incorrect indentation causes logic bugs like returning None
 
+**Day 5 — Data Visualization and JSON API**
+- JsonResponse — returning data as JSON from a Django view instead of an HTML page
+- Why stats must be grouped by unit — mixing pH and temperature averages produces meaningless numbers
+- values_list with distinct() — fetching unique values from a database column
+- Per-unit aggregation — looping through unit types and running separate calculations for each
+- Chart.js — drawing interactive line charts using a JavaScript library
+- Fetch API — JavaScript calling a backend URL in the background without reloading the page
+- Connecting frontend to backend — how JavaScript consumes a Django JSON endpoint to render a chart
+- floatformat filter — formatting decimal numbers cleanly in Django templates
+- pluralize filter — automatically adding "s" to words based on count
+
 ---
 
-##  Build Progress
+## Build Progress
 
 - [x] Day 1 — Django setup, URL routing, first template
 - [x] Day 2 — Database model, migrations, Django Admin
 - [x] Day 3 — Bootstrap 5 dashboard, stats cards, readings table
 - [x] Day 4 — Django forms, add reading page, form validation, CSRF
-- [ ] Day 5 — Chart.js visualization, JSON API endpoint
+- [x] Day 5 — Chart.js visualization, JSON API endpoint, per-unit statistics
 - [ ] Day 6 — Filter by sensor, polish and responsive design
 
 ---
 
-##  Author
+## Author
 
 **Udit Bhattarai**
 - GitHub: [@uditbh123](https://github.com/uditbh123)
