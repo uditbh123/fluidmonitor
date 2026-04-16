@@ -5,7 +5,11 @@ from django.db.models import Avg, Min, Max
 from django.http import JsonResponse
 
 def home(request):
+    sensor_filter = request.GET.get('sensor', '')
     readings = Reading.objects.all().order_by('-recorded_at')
+
+    if sensor_filter:
+        readings = readings.filter(sensor_name__icontains=sensor_filter)
 
     # Calculate stats separately for each unit type
     units = Reading.objects.values_list('unit', flat=True).distinct()
@@ -25,10 +29,16 @@ def home(request):
             'max': unit_stats['max_value'],
             'count': unit_readings.count(),
         })
+    
+    sensors = Reading.objects.values_list('sensor_name', flat=True).distinct()
+    total_count = Reading.objects.count()
 
     context = {
         'readings': readings,
         'stats_by_unit': stats_by_unit,
+        'sensors': sensors,
+        'sensor_filter': sensor_filter,
+        'total_count': total_count,
     }
     return render(request, 'readings/home.html', context)
 
