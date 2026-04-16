@@ -17,9 +17,11 @@ This dashboard replaces a manual clipboard process with a proper web interface w
 - **Log sensor readings** — record pH, temperature, concentration, and percentage values from any sensor
 - **Live dashboard** — view all readings in a clean, responsive Bootstrap 5 table
 - **Add readings from the frontend** — a form page lets any user log a new reading without needing admin access
-- **Per-unit statistics** — average, minimum, and maximum values calculated separately for each unit type (pH, temperature, concentration)
+- **Delete readings** — remove any reading with a confirmation step to prevent accidental deletion
+- **Per-unit statistics** — average, minimum, and maximum values calculated separately for each unit type so pH and temperature are never mixed
+- **Filter by sensor** — narrow down readings to a specific sensor using a dropdown, with an active filter badge and a clear button
 - **Data visualization** — interactive line chart showing sensor values over time using Chart.js
-- **Filter by sensor** — narrow down readings to a specific sensor with a dropdown filter
+- **Total reading count** — live count of all readings displayed in the navbar
 - **Django Admin** — full admin panel for managing data directly
 - **JSON API endpoint** — `/chart-data/` returns sensor data as JSON, consumed by the frontend chart
 
@@ -71,6 +73,9 @@ class Reading(models.Model):
 ### The Statistics Layer
 Stats are calculated separately per unit type so that pH averages are never mixed with temperature or concentration values. Django's ORM aggregation functions (Avg, Min, Max) run the calculations directly in the database rather than in Python, which is more efficient.
 
+### The Filter Layer
+Filtering works through Django's GET parameters. When a user selects a sensor from the dropdown, the URL becomes `/?sensor=Sensor+A`. Django reads this with `request.GET.get('sensor')` and applies `.filter(sensor_name__icontains=...)` to the queryset before passing data to the template.
+
 ### The Form Layer
 New readings are submitted through a Django ModelForm. Django handles:
 - Rendering the form fields as HTML automatically
@@ -81,10 +86,10 @@ New readings are submitted through a Django ModelForm. Django handles:
 ### The JSON API
 The chart is powered by a JSON endpoint built in Django:
 - `/chart-data/` returns sensor readings as JSON
-- JavaScript uses `fetch()` to call this endpoint in the background
+- JavaScript uses `fetch()` to call this endpoint in the background without reloading the page
 - Chart.js renders the data as an interactive line graph
 
-This is how real dashboards work in production — the backend serves data, the frontend consumes it separately from the page load.
+This is how real dashboards work in production — the backend serves data and the frontend consumes it separately from the page load.
 
 ---
 
@@ -101,8 +106,9 @@ fluidmonitor/
 │   │   └── 0001_initial.py      # First migration — creates readings table
 │   ├── templates/
 │   │   └── readings/
-│   │       ├── home.html        # Dashboard page with stats, table, and chart
-│   │       └── add_reading.html # Add new reading form page
+│   │       ├── home.html        # Dashboard — stats, filter, table, chart
+│   │       ├── add_reading.html # Add new reading form page
+│   │       └── confirm_delete.html # Delete confirmation page
 │   ├── models.py                # Reading data model (database table)
 │   ├── views.py                 # Business logic and page rendering
 │   ├── urls.py                  # App-level URL routing
@@ -169,8 +175,9 @@ Admin panel available at http://127.0.0.1:8000/admin
 
 | Page | URL | Description |
 |------|-----|-------------|
-| Dashboard | `/` | All readings, per-unit stats cards, and chart |
+| Dashboard | `/` | Stats cards, filter, readings table, and chart |
 | Add Reading | `/add/` | Form to log a new sensor reading from the frontend |
+| Delete Reading | `/delete/<id>/` | Confirmation page before deleting a reading |
 | Admin | `/admin/` | Django admin panel for superusers |
 | Chart Data | `/chart-data/` | JSON API endpoint for the chart |
 
@@ -218,6 +225,16 @@ Admin panel available at http://127.0.0.1:8000/admin
 - floatformat filter — formatting decimal numbers cleanly in Django templates
 - pluralize filter — automatically adding "s" to words based on count
 
+**Day 6 — Filter, Delete and Polish**
+- GET parameters — reading URL query strings like ?sensor=Sensor+A with request.GET.get()
+- icontains lookup — case-insensitive filtering in Django ORM using double underscore syntax
+- URL parameters — capturing dynamic values like /delete/3/ using <int:pk> in urls.py
+- Primary key — the unique auto-generated ID Django assigns to every database row
+- Conditional template rendering — showing the clear filter button only when a filter is active
+- Empty state handling — using Django's {% empty %} tag to show a message when a queryset is empty
+- Delete confirmation pattern — showing a confirmation page before any destructive action
+- UX polish — shadow cards, active filter badges, total count in navbar, responsive layout
+
 ---
 
 ## Build Progress
@@ -227,7 +244,7 @@ Admin panel available at http://127.0.0.1:8000/admin
 - [x] Day 3 — Bootstrap 5 dashboard, stats cards, readings table
 - [x] Day 4 — Django forms, add reading page, form validation, CSRF
 - [x] Day 5 — Chart.js visualization, JSON API endpoint, per-unit statistics
-- [ ] Day 6 — Filter by sensor, polish and responsive design
+- [x] Day 6 — Sensor filter, delete reading, dashboard polish, responsive design
 
 ---
 
