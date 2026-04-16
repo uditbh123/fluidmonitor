@@ -63,3 +63,10 @@ def chart_data(request):
         'sensors': [r.sensor_name for r in readings],
     }
     return JsonResponse(data)
+
+def delete_reading(request, pk):
+    reading = Reading.objects.get(pk=pk)
+    if request.method == 'POST':
+        reading.delete()
+        return redirect('home')
+    return render(request, 'readings/confirm_delete.html', {'reading': reading})
