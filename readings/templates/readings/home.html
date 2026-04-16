@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Fluid Monitor</title>
-    <!-- Bootstrap 5 CSS loaded from CDN — no installation needed -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
@@ -13,52 +12,84 @@
     <nav class="navbar navbar-dark bg-dark">
         <div class="container">
             <span class="navbar-brand fw-bold">Fluid Monitor</span>
+            <span class="text-white-50 small">{{ total_count }} reading{{ total_count|pluralize }} logged</span>
         </div>
     </nav>
 
     <div class="container mt-4">
 
-<!-- STATS BY UNIT -->
-<div class="row mb-4">
-    {% for stat in stats_by_unit %}
-    <div class="col-md-4 mb-3">
-        <div class="card h-100 border-0 shadow-sm">
-            <div class="card-header bg-dark text-white">
-                <h6 class="mb-0">
-                    {% if stat.unit == 'pH' %}
-                    {% elif stat.unit == 'C' %}
-                    {% elif stat.unit == 'mg/L' %}
-                    {% else %}
-                    {% endif %}
-                    {{ stat.unit }} — {{ stat.count }} reading{{ stat.count|pluralize }}
-                </h6>
+        <!-- STATS BY UNIT -->
+        <div class="row mb-4">
+            {% for stat in stats_by_unit %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <h6 class="mb-0">
+                            {% if stat.unit == 'pH' %}
+                                pH
+                            {% elif stat.unit == 'C' %}
+                                Temperature (C)
+                            {% elif stat.unit == 'mg/L' %}
+                                Concentration (mg/L)
+                            {% else %}
+                                {{ stat.unit }}
+                            {% endif %}
+                            — {{ stat.count }} reading{{ stat.count|pluralize }}
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm mb-0">
+                            <tr>
+                                <td class="text-muted ps-3">Average</td>
+                                <td class="fw-bold text-primary">{{ stat.avg|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted ps-3">Minimum</td>
+                                <td class="fw-bold text-success">{{ stat.min|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted ps-3">Maximum</td>
+                                <td class="fw-bold text-danger">{{ stat.max|floatformat:2 }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div class="card-body p-0">
-                <table class="table table-sm mb-0">
-                    <tr>
-                        <td class="text-muted ps-3">Average</td>
-                        <td class="fw-bold text-primary">{{ stat.avg|floatformat:2 }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted ps-3">Minimum</td>
-                        <td class="fw-bold text-success">{{ stat.min|floatformat:2 }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted ps-3">Maximum</td>
-                        <td class="fw-bold text-danger">{{ stat.max|floatformat:2 }}</td>
-                    </tr>
-                </table>
+            {% endfor %}
+        </div>
+
+        <!-- FILTER BAR -->
+        <div class="card mb-3 border-0 shadow-sm">
+            <div class="card-body py-2">
+                <form method="GET" class="d-flex gap-2 align-items-center flex-wrap">
+                    <label class="text-muted small mb-0">Filter by sensor:</label>
+                    <select name="sensor" class="form-select form-select-sm" style="width: auto;">
+                        <option value="">All Sensors</option>
+                        {% for sensor in sensors %}
+                        <option value="{{ sensor }}"
+                            {% if sensor == sensor_filter %}selected{% endif %}>
+                            {{ sensor }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-dark">Apply</button>
+                    {% if sensor_filter %}
+                    <a href="/" class="btn btn-sm btn-outline-secondary">Clear</a>
+                    {% endif %}
+                </form>
             </div>
         </div>
-    </div>
-    {% endfor %}
-</div>
 
         <!-- READINGS TABLE -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">All Readings</h5>
-                <a href="/add/" class="btn btn-sm btn-primary">+ Add Reading</a>
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    All Readings
+                    {% if sensor_filter %}
+                    <span class="badge bg-secondary ms-2">{{ sensor_filter }}</span>
+                    {% endif %}
+                </h5>
+                <a href="/add/" class="btn btn-sm btn-dark">+ Add Reading</a>
             </div>
             <div class="card-body p-0">
                 <table class="table table-striped table-hover mb-0">
@@ -69,6 +100,7 @@
                             <th>Unit</th>
                             <th>Recorded At</th>
                             <th>Notes</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -78,12 +110,21 @@
                             <td>{{ reading.value }}</td>
                             <td>{{ reading.unit }}</td>
                             <td>{{ reading.recorded_at|date:"d M Y, H:i" }}</td>
-                            <td>{{ reading.notes }}</td>
+                            <td class="text-muted">{{ reading.notes }}</td>
+                            <td>
+                                <a href="/delete/{{ reading.pk }}/"
+                                   class="btn btn-sm btn-outline-danger">
+                                   Delete
+                                </a>
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
-                                No readings yet. Add one above!
+                            <td colspan="6" class="text-center text-muted py-4">
+                                No readings found.
+                                {% if sensor_filter %}
+                                <a href="/">Clear filter</a>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
@@ -91,81 +132,69 @@
                 </table>
             </div>
         </div>
-        <!-- CHART SECTION -->
-<div class="card mt-4">
-    <div class="card-header">
-        <h5 class="mb-0">Readings Over Time</h5>
-    </div>
-    <div class="card-body">
-        <canvas id="readingsChart" height="80"></canvas>
-    </div>
-</div>
+
+        <!-- CHART -->
+        <div class="card mt-4 border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Readings Over Time</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="readingsChart" height="80"></canvas>
+            </div>
+        </div>
 
     </div>
 
-    <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Chart.js library -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script>
-    // Step 1: fetch data from our Django JSON endpoint
-    fetch('/chart-data/')
-        .then(function(response) {
-            return response.json();
-        })
-        .then(function(data) {
-            // Step 2: find the canvas element on the page
-            const ctx = document.getElementById('readingsChart').getContext('2d');
-
-            // Step 3: create the chart
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        label: 'Sensor Readings',
-                        data: data.values,
-                        borderColor: 'rgb(13, 110, 253)',
-                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                        tension: 0.3,
-                        fill: true,
-                        pointRadius: 5,
-                        pointHoverRadius: 8,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        tooltip: {
-                            callbacks: {
-                                afterLabel: function(context) {
-                                    return 'Sensor: ' + data.sensors[context.dataIndex];
+    <script>
+        fetch('/chart-data/')
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                const ctx = document.getElementById('readingsChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Sensor Readings',
+                            data: data.values,
+                            borderColor: 'rgb(33, 37, 41)',
+                            backgroundColor: 'rgba(33, 37, 41, 0.08)',
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 5,
+                            pointHoverRadius: 8,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'top' },
+                            tooltip: {
+                                callbacks: {
+                                    afterLabel: function(context) {
+                                        return 'Sensor: ' + data.sensors[context.dataIndex];
+                                    }
                                 }
                             }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            title: {
-                                display: true,
-                                text: 'Value'
-                            }
                         },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Time'
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                title: { display: true, text: 'Value' }
+                            },
+                            x: {
+                                title: { display: true, text: 'Time' }
                             }
                         }
                     }
-                }
+                });
             });
-        });
-</script>
+    </script>
+
 </body>
 </html>
